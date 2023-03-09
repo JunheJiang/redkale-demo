@@ -13,6 +13,78 @@
 </ol>
 &nbsp;&nbsp;&nbsp;本工程项目依赖 <strong>redkale-plugins</strong> 项目。
 
+###缺点
+<ol>
+<li>JDK的更新、相关组件的开发、相关jar的安全与升级</li>
+<li>json、缓存查询、数据更新性能强劲、但单次查询是弱项</li>
+<li>缺乏大规模集群部署能力</li>
+</ol>
+
+&nbsp;&nbsp;&nbsp;由于RedKale使用了JDK 8 内置的ASM包，所以需要在源码工程中的编译器选项中加入： <b>-XDignore.symbol.file=true</b>
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<h5>详情请访问:&nbsp;&nbsp;&nbsp;&nbsp;<a href='http://redkale.org' target='_blank'>http://redkale.org</a></h5>
+
+C：操作系统、编译器、 驱动、 非gc类语言
+C++：中间件 驱动 大型项目  gc类语言
+Rust：区块链、编译器、高性能强劲web、驱动程序、操作系统 非gc类语言、核武重器战略部队
+
+AI：指挥部
+
+Java：高性能web服务集群/大数据服务 常规武器群 陆军部队 gc类语言
+
+特种战斗部队：耗小快速高效：redkale xitca-web actix-web/WebSocket
+
+JS/TS/CSS/Html5/Vue/React：常规武器群  两栖部队
+
+Go：区块链、云原生、k8s 高并发服务集群 高端武器群  高并发 空军部队 gc类语言 
+//消耗cpu和内存
+gin
+gorm m 
+
+
+Python/R/Scala：爬虫、大数据分析 航母战斗群
+
+Kotin/Swift/OC：海军部队
+
+IM：websocket netty gws  gorilla
+内存
+cpu
+
+存储 
+go:minio ffmpeg
+
+
+数据同步集成
+DataX
+
+部署
+k8s
+
+计算
+flink
+spark
+
+消息 
+
+日志 
+
+监控 
+
+运维 
+
+测试 
+
+低代码平台
+
+图片加载
+
+音视频播放
+
+###适用场景
+异步
+多缓存查询
+websocket
+
 &nbsp;&nbsp;&nbsp;由于RedKale使用了JDK 8 内置的ASM包，所以需要在源码工程中的编译器选项中加入： <b>-XDignore.symbol.file=true</b>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<h5>详情请访问:&nbsp;&nbsp;&nbsp;&nbsp;<a href='http://redkale.org' target='_blank'>http://redkale.org</a></h5>

@@ -7,18 +7,20 @@ package org.redkale.demo.base;
 
 import java.io.*;
 import java.util.*;
+
 import org.redkale.service.Service;
 import org.redkale.source.*;
+
 import static org.redkale.source.AbstractDataSource.*;
+
 import org.redkale.util.AnyValue.DefaultAnyValue;
 
 /**
- *
  * @author zhangjx
  */
 public class AutoClassCreator {
 
-    private static final String currentpkg = AutoClassCreator.class.getPackage().getName();
+    private static final String currentPkg = AutoClassCreator.class.getPackage().getName();
 
     private static final String jdbc_url = "jdbc:mysql://localhost:3306/redemo_platf?autoReconnect=true&amp;characterEncoding=utf8";//数据库url
 
@@ -27,29 +29,29 @@ public class AutoClassCreator {
     private static final String jdbc_pwd = ""; //数据库密码
 
     public static void main(String[] args) throws Exception {
-
-        String pkg = currentpkg.substring(0, currentpkg.lastIndexOf('.') + 1) + "user";  //与base同级的包名
-
-        final String entityClass = "UserDetail";//类名
-
-        final String superEntityClass = "";//父类名
-
-        loadEntity(pkg, entityClass, superEntityClass); //Entity内容
-
+        //与base同级的包名
+        String pkg = currentPkg.substring(0, currentPkg.lastIndexOf('.') + 1) + "user";
+        //类名
+        final String entityClass = "UserDetail";
+        //父类名
+        final String superEntityClass = "";
+        //Entity内容
+        loadEntity(pkg, entityClass, superEntityClass);
     }
 
-    private static void loadEntity(String pkg, String classname, String superclassname) throws Exception {
-        String entityBody = createEntityContent(pkg, classname, superclassname); //源码内容
-        final File entityFile = new File("src/" + pkg.replace('.', '/') + "/" + classname + ".java");
+    private static void loadEntity(String pkg, String className, String superClassName) throws Exception {
+        //源码内容
+        String entityBody = createEntityContent(pkg, className, superClassName);
+        final File entityFile = new File("src/" + pkg.replace('.', '/') + "/" + className + ".java");
         if (entityFile.isFile()) {
-            throw new RuntimeException(classname + ".java 已经存在");
+            throw new RuntimeException(className + ".java 已经存在");
         }
         FileOutputStream out = new FileOutputStream(entityFile);
         out.write(entityBody.getBytes("UTF-8"));
         out.close();
     }
 
-    private static String createEntityContent(String pkg, String classname, String superclassname) throws Exception {
+    private static String createEntityContent(String pkg, String className, String superClassName) throws Exception {
         DefaultAnyValue prop = new DefaultAnyValue();
         prop.addValue(DATA_SOURCE_URL, jdbc_url);
         prop.addValue(DATA_SOURCE_USER, jdbc_user);
@@ -61,14 +63,14 @@ public class AutoClassCreator {
         final StringBuilder tostring = new StringBuilder();
         final StringBuilder tableComment = new StringBuilder();
         final Map<String, String> uniques = new HashMap<>();
-        final Map<String, String> indexs = new HashMap<>();
+        final Map<String, String> indexes = new HashMap<>();
         final List<String> columns = new ArrayList<>();
         final Set<String> superColumns = new HashSet<>();
-        source.directQuery("SHOW CREATE TABLE " + classname.toLowerCase(), (DataResultSet tcs) -> {
+        source.directQuery("SHOW CREATE TABLE " + className.toLowerCase(), (DataResultSet tcs) -> {
             try {
                 tcs.next();
-                final String createsql = (String) tcs.getObject(2);
-                for (String str : createsql.split("\n")) {
+                final String createSql = (String) tcs.getObject(2);
+                for (String str : createSql.split("\n")) {
                     str = str.trim();
                     if (str.startsWith("`")) {
                         str = str.substring(str.indexOf('`') + 1);
@@ -78,12 +80,12 @@ public class AutoClassCreator {
                         uniques.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
                     } else if (str.startsWith("KEY ")) {
                         str = str.substring(str.indexOf('`') + 1);
-                        indexs.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
+                        indexes.put(str.substring(0, str.indexOf('`')), str.substring(str.indexOf('(') + 1, str.indexOf(')')));
                     }
                 }
-                int pos = createsql.indexOf("COMMENT='");
+                int pos = createSql.indexOf("COMMENT='");
                 if (pos > 0) {
-                    tableComment.append(createsql.substring(pos + "COMMENT='".length(), createsql.lastIndexOf('\'')));
+                    tableComment.append(createSql.substring(pos + "COMMENT='".length(), createSql.lastIndexOf('\'')));
                 } else {
                     tableComment.append("");
                 }
@@ -93,8 +95,8 @@ public class AutoClassCreator {
             return "";
         });
 
-        if (superclassname != null && !superclassname.isEmpty()) {
-            source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + superclassname.toLowerCase() + "'", (DataResultSet rs) -> {
+        if (superClassName != null && !superClassName.isEmpty()) {
+            source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + superClassName.toLowerCase() + "'", (DataResultSet rs) -> {
                 try {
                     while (rs.next()) {
                         superColumns.add((String) rs.getObject("COLUMN_NAME"));
@@ -105,12 +107,12 @@ public class AutoClassCreator {
                 return "";
             });
         }
-        source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + classname.toLowerCase() + "'", (DataResultSet rs) -> {
+        source.directQuery("SELECT * FROM information_schema.columns WHERE  table_name = '" + className.toLowerCase() + "'", (DataResultSet rs) -> {
             try {
                 sb.append("package " + pkg + ";" + "\r\n\r\n");
                 sb.append("import org.redkale.persistence.*;\r\n");
                 //sb.append("import org.redkale.util.*;\r\n");
-                if (superclassname == null || superclassname.isEmpty()) {
+                if (superClassName == null || superClassName.isEmpty()) {
                     try {
                         Class.forName("org.redkale.demo.base.BaseEntity");
                         sb.append("import org.redkale.demo.base.BaseEntity;\r\n");
@@ -122,9 +124,9 @@ public class AutoClassCreator {
                     }
                 }
                 sb.append("\r\n/**\r\n"
-                    + " *\r\n"
-                    + " * @author " + System.getProperty("user.name") + "\r\n"
-                    + " */\r\n");
+                        + " *\r\n"
+                        + " * @author " + System.getProperty("user.name") + "\r\n"
+                        + " */\r\n");
                 //if (classname.contains("Info")) sb.append("@Cacheable\r\n");
                 sb.append("@Table(comment = \"" + tableComment + "\"");
                 if (!uniques.isEmpty()) {
@@ -139,10 +141,10 @@ public class AutoClassCreator {
                     }
                     sb.append("}");
                 }
-                if (!indexs.isEmpty()) {
+                if (!indexes.isEmpty()) {
                     sb.append("\r\n        , indexes = {");
                     boolean first = true;
-                    for (Map.Entry<String, String> en : indexs.entrySet()) {
+                    for (Map.Entry<String, String> en : indexes.entrySet()) {
                         if (!first) {
                             sb.append(", ");
                         }
@@ -152,8 +154,8 @@ public class AutoClassCreator {
                     sb.append("}");
                 }
                 sb.append(")\r\n");
-                sb.append("public class " + classname
-                    + (superclassname != null && !superclassname.isEmpty() ? (" extends " + superclassname) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
+                sb.append("public class " + className
+                        + (superClassName != null && !superClassName.isEmpty() ? (" extends " + superClassName) : (tostring.length() == 0 ? " extends BaseEntity" : " implements java.io.Serializable")) + " {\r\n\r\n");
                 Map<String, StringBuilder> columnMap = new HashMap<>();
                 Map<String, StringBuilder> getsetMap = new HashMap<>();
                 while (rs.next()) {
@@ -162,20 +164,20 @@ public class AutoClassCreator {
                     String remark = (String) rs.getObject("COLUMN_COMMENT");
                     String def = (String) rs.getObject("COLUMN_DEFAULT");
                     String key = (String) rs.getObject("COLUMN_KEY");
-                    StringBuilder fieldsb = new StringBuilder();
+                    StringBuilder fieldSB = new StringBuilder();
                     if (key != null && key.contains("PRI")) {
-                        fieldsb.append("    @Id");
+                        fieldSB.append("    @Id");
                     } else if (superColumns.contains(column)) {  //跳过被继承的重复字段
                         continue;
                     }
-                    fieldsb.append("\r\n");
+                    fieldSB.append("\r\n");
 
                     int length = 0;
                     int precision = 0;
                     int scale = 0;
                     String ctype = "NULL";
-                    String precisionstr = (String) rs.getObject("NUMERIC_PRECISION");
-                    String scalestr = (String) rs.getObject("NUMERIC_SCALE");
+                    String precisionStr = (String) rs.getObject("NUMERIC_PRECISION");
+                    String scaleStr = (String) rs.getObject("NUMERIC_SCALE");
                     if ("INT".equalsIgnoreCase(type)) {
                         ctype = "int";
                     } else if ("BIGINT".equalsIgnoreCase(type)) {
@@ -186,12 +188,12 @@ public class AutoClassCreator {
                         ctype = "float";
                     } else if ("DECIMAL".equalsIgnoreCase(type)) {
                         ctype = "float";
-                        precision = precisionstr == null ? 0 : Integer.parseInt(precisionstr);
-                        scale = scalestr == null ? 0 : Integer.parseInt(scalestr);
+                        precision = precisionStr == null ? 0 : Integer.parseInt(precisionStr);
+                        scale = scaleStr == null ? 0 : Integer.parseInt(scaleStr);
                     } else if ("DOUBLE".equalsIgnoreCase(type)) {
                         ctype = "double";
-                        precision = precisionstr == null ? 0 : Integer.parseInt(precisionstr);
-                        scale = scalestr == null ? 0 : Integer.parseInt(scalestr);
+                        precision = precisionStr == null ? 0 : Integer.parseInt(precisionStr);
+                        scale = scaleStr == null ? 0 : Integer.parseInt(scaleStr);
                     } else if ("VARCHAR".equalsIgnoreCase(type)) {
                         ctype = "String";
                         String maxsize = (String) rs.getObject("CHARACTER_MAXIMUM_LENGTH");
@@ -201,47 +203,47 @@ public class AutoClassCreator {
                     } else if (type.contains("BLOB")) {
                         ctype = "byte[]";
                     }
-                    fieldsb.append("    @Column(");
+                    fieldSB.append("    @Column(");
                     if ("createTime".equals(column)) {
-                        fieldsb.append("updatable = false, ");
+                        fieldSB.append("updatable = false, ");
                     }
                     if (length > 0) {
-                        fieldsb.append("length = ").append(length).append(", ");
+                        fieldSB.append("length = ").append(length).append(", ");
                     }
                     if (precision > 0) {
-                        fieldsb.append("precision = ").append(precision).append(", ");
+                        fieldSB.append("precision = ").append(precision).append(", ");
                     }
                     if (scale > 0) {
-                        fieldsb.append("scale = ").append(scale).append(", ");
+                        fieldSB.append("scale = ").append(scale).append(", ");
                     }
-                    fieldsb.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
+                    fieldSB.append("comment = \"" + remark.replace('"', '\'') + "\")\r\n");
 
-                    fieldsb.append("    private " + ctype + " " + column);
+                    fieldSB.append("    private " + ctype + " " + column);
                     if (def != null && !"0".equals(def)) {
                         String d = def.replace('\'', '\"');
-                        fieldsb.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
+                        fieldSB.append(" = ").append(d.isEmpty() ? "\"\"" : d.toString());
                         if ("float".equals(ctype)) {
-                            fieldsb.append("f");
+                            fieldSB.append("f");
                         }
                     } else if ("String".equals(ctype)) {
-                        fieldsb.append(" = \"\"");
+                        fieldSB.append(" = \"\"");
                     }
-                    fieldsb.append(";\r\n");
+                    fieldSB.append(";\r\n");
 
                     char[] chs2 = column.toCharArray();
                     chs2[0] = Character.toUpperCase(chs2[0]);
                     String sgname = new String(chs2);
 
-                    StringBuilder setgetsb = new StringBuilder();
-                    setgetsb.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
-                    setgetsb.append("        this." + column + " = " + column + ";\r\n");
-                    setgetsb.append("    }\r\n");
+                    StringBuilder setGetSB = new StringBuilder();
+                    setGetSB.append("\r\n    public void set" + sgname + "(" + ctype + " " + column + ") {\r\n");
+                    setGetSB.append("        this." + column + " = " + column + ";\r\n");
+                    setGetSB.append("    }\r\n");
 
-                    setgetsb.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
-                    setgetsb.append("        return this." + column + ";\r\n");
-                    setgetsb.append("    }\r\n");
-                    columnMap.put(column, fieldsb);
-                    getsetMap.put(column, setgetsb);
+                    setGetSB.append("\r\n    public " + ctype + " get" + sgname + "() {\r\n");
+                    setGetSB.append("        return this." + column + ";\r\n");
+                    setGetSB.append("    }\r\n");
+                    columnMap.put(column, fieldSB);
+                    getsetMap.put(column, setGetSB);
                 }
                 List<StringBuilder> list = new ArrayList<>();
                 for (String column : columns) {
@@ -266,7 +268,6 @@ public class AutoClassCreator {
             }
             return "";
         });
-
         return sb.toString();
     }
 }

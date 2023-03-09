@@ -6,15 +6,16 @@
         <property name="system.property.convert.json.tiny" value="false"/>
     </properties>
 
-    <server protocol="HTTP" port="5001"> 
+    <server protocol="HTTP" host="0.0.0.0" port="5001" root="root" >
         <request>
             <remoteaddr value="request.headers.X-RemoteAddress"/>
         </request>
 
         <response>
             <addheader name="X-Node" value="system.property.APP_NODE" /> 
-        </response>            
-	
+        </response>
+        <!-- base指定的自定义HttpServlet子类必须标记@HttpUserType, 不设置base则视为没有当前用户信息设置  -->
+        <rest path="/pipes" autoload="true" />
         <services autoload="true"/>
         <servlets path="/pipes" />  		
     </server>
